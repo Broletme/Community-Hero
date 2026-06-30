@@ -50,7 +50,7 @@ export default function DashboardPage() {
     setConfirmingId(report.id)
     try {
       const supabase = getSupabaseBrowserClient()
-      await supabase
+      await (supabase as any)
         .from('reports')
         .update({ verification_count: (report.verification_count ?? 1) + 1 })
         .eq('id', report.id)

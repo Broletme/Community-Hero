@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Community Hero — Civic Issue Reporting',
+  title: 'CivicTag — Civic Issue Reporting',
   description:
     'Report local infrastructure problems — potholes, broken streetlights, water leaks, and waste — with AI-powered categorization and live map tracking.',
 }

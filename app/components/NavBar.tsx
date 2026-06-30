@@ -69,7 +69,7 @@ export default function NavBar() {
               color: 'var(--color-paper)',
             }}
           >
-            Community<span style={{ color: 'var(--color-orange)' }}>Hero</span>
+            Civic<span style={{ color: 'var(--color-orange)' }}>Tag</span>
           </span>
         </Link>
 

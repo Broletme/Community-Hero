@@ -26,6 +26,48 @@ export default function ReportForm() {
   const [submitResult, setSubmitResult] = useState<(SubmitReportResult & { fallback?: boolean }) | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
+  const [description, setDescription] = useState('')
+  const [isListening, setIsListening] = useState(false)
+  const [speechSupported, setSpeechSupported] = useState(false)
+  const recognitionRef = useRef<any>(null)
+  const originalTextRef = useRef('')
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+      setSpeechSupported(true)
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+      recognitionRef.current = new SpeechRecognition()
+      recognitionRef.current.continuous = true
+      recognitionRef.current.interimResults = true
+
+      recognitionRef.current.onresult = (event: any) => {
+        let transcript = ''
+        for (let i = 0; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript
+        }
+        setDescription(originalTextRef.current + transcript)
+      }
+      
+      recognitionRef.current.onend = () => {
+        setIsListening(false)
+      }
+    }
+  }, [])
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) return
+    if (isListening) {
+      recognitionRef.current.stop()
+      setIsListening(false)
+    } else {
+      originalTextRef.current = description ? description + ' ' : ''
+      try {
+        recognitionRef.current.start()
+        setIsListening(true)
+      } catch(e) {}
+    }
+  }
+
   // Auto-request geolocation when moving to location step
   useEffect(() => {
     if (step === 'location' && !coords) {
@@ -90,6 +132,9 @@ export default function ReportForm() {
       formData.append('image', imageFile)
       formData.append('lat', coords.lat.toString())
       formData.append('lng', coords.lng.toString())
+      if (description.trim()) {
+        formData.append('description', description.trim())
+      }
 
       const res = await fetch('/api/report', {
         method: 'POST',
@@ -118,6 +163,9 @@ export default function ReportForm() {
     setSubmitResult(null)
     setSubmitError(null)
     setGeoError(null)
+    setDescription('')
+    setIsListening(false)
+    if (recognitionRef.current && isListening) recognitionRef.current.stop()
   }
 
   // ── Step: DONE ────────────────────────────────────────────────────────────────
@@ -383,6 +431,39 @@ export default function ReportForm() {
             >
               Click anywhere on the map to place the pin at the exact issue location.
             </p>
+          </div>
+
+          {/* Description */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+              <label className="field-label" style={{ marginBottom: 0 }}>Description (Optional)</label>
+              {speechSupported && (
+                <button
+                  className="btn-ghost"
+                  style={{ 
+                    padding: '0.25rem 0.5rem', 
+                    fontSize: '0.75rem', 
+                    color: isListening ? 'var(--color-sev-high)' : 'var(--color-paper-dim)' 
+                  }}
+                  onClick={toggleListening}
+                  type="button"
+                >
+                  {isListening ? (
+                    <><span className="live-dot" style={{ background: 'var(--color-sev-high)' }} /> Listening…</>
+                  ) : (
+                    <>🎤 Voice to Text</>
+                  )}
+                </button>
+              )}
+            </div>
+            <textarea
+              className="field-input"
+              style={{ minHeight: 80, resize: 'vertical' }}
+              placeholder="Add details about the issue..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              disabled={step === 'submitting'}
+            />
           </div>
 
           {/* Submit error */}

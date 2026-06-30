@@ -8,6 +8,7 @@ export async function POST(request: NextRequest) {
     const imageFile = formData.get('image') as File | null
     const latStr = formData.get('lat') as string | null
     const lngStr = formData.get('lng') as string | null
+    const userDesc = formData.get('description') as string | null
 
     if (!imageFile || !latStr || !lngStr) {
       return NextResponse.json({ error: 'Missing image, lat, or lng' }, { status: 400 })
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
         const cat = await categorizeRes.json()
         category = cat.category ?? 'other'
         severity = cat.severity ?? 'medium'
-        description = cat.description ?? 'Infrastructure issue reported.'
+        description = userDesc || cat.description || 'Infrastructure issue reported.'
         fallback = cat.fallback ?? false
       }
     } catch (catErr) {
@@ -73,13 +74,14 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Check for nearby duplicate report
-    const { data: nearbyData, error: nearbyError } = await supabase.rpc('find_nearby_report', {
+    const { data, error: nearbyError } = await supabase.rpc('find_nearby_report', {
       p_lat: lat,
       p_lng: lng,
       p_category: category,
       radius_m: 60,
       days_window: 30,
     } as any)
+    const nearbyData = data as any[] | null
 
     if (nearbyError) {
       console.error('[report] RPC error:', nearbyError)
@@ -102,14 +104,14 @@ export async function POST(request: NextRequest) {
       const { data: rootReport } = await supabase
         .from('reports')
         .select('verification_count')
-        .eq('id', clusterRootId)
+        .eq('id', clusterRootId!)
         .single()
 
       if (rootReport) {
-        await supabase
+        await (supabase as any)
           .from('reports')
-          .update({ verification_count: (rootReport.verification_count ?? 0) + 1 })
-          .eq('id', clusterRootId)
+          .update({ verification_count: (Number((rootReport as any).verification_count) || 0) + 1 })
+          .eq('id', clusterRootId!)
       }
     }
 
@@ -126,7 +128,7 @@ export async function POST(request: NextRequest) {
       verification_count: merged ? 1 : 0,
     }
 
-    const { data: insertedReport, error: insertError } = await supabase
+    const { data: insertedReport, error: insertError } = await (supabase as any)
       .from('reports')
       .insert(newReportData)
       .select()
@@ -143,7 +145,7 @@ export async function POST(request: NextRequest) {
       const { count } = await supabase
         .from('reports')
         .select('*', { count: 'exact', head: true })
-        .eq('cluster_id', clusterRootId)
+        .eq('cluster_id', clusterRootId!)
 
       // count includes the root + all duplicates except the root itself (cluster_id = root.id)
       // root itself has cluster_id = null, so add 1

@@ -3,7 +3,7 @@ import NavBar from '../components/NavBar'
 import ReportForm from '../components/ReportForm'
 
 export const metadata: Metadata = {
-  title: 'Report an Issue — Community Hero',
+  title: 'Report an Issue — CivicTag',
   description: 'Upload a photo and submit a civic infrastructure issue. AI will automatically categorize it.',
 }
 

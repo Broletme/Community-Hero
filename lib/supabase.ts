@@ -13,6 +13,9 @@ type Database = {
         Update: Partial<Report>
       }
     }
+    Views: {
+      [_ in never]: never
+    }
     Functions: {
       find_nearby_report: {
         Args: {
@@ -25,20 +28,26 @@ type Database = {
         Returns: { id: string; cluster_id: string | null }[]
       }
     }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
 }
 
 /** Browser/client-side Supabase client (singleton) */
-let _browserClient: ReturnType<typeof createClient<Database>> | null = null
+let _browserClient: ReturnType<typeof createClient> | null = null
 
 export function getSupabaseBrowserClient() {
   if (!_browserClient) {
-    _browserClient = createClient<Database>(supabaseUrl, supabaseAnonKey)
+    _browserClient = createClient(supabaseUrl, supabaseAnonKey)
   }
   return _browserClient
 }
 
 /** Server-side Supabase client (new instance per call — safe in Route Handlers) */
 export function getSupabaseServerClient() {
-  return createClient<Database>(supabaseUrl, supabaseAnonKey)
+  return createClient(supabaseUrl, supabaseAnonKey)
 }
