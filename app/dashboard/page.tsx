@@ -42,6 +42,26 @@ export default function DashboardPage() {
   const [filterCategory, setFilterCategory] = useState<Category | 'all'>('all')
   const [filterStatus, setFilterStatus] = useState<Status | 'all'>('all')
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [confirmingId, setConfirmingId] = useState<string | null>(null)
+  const [confirmedSet, setConfirmedSet] = useState<Set<string>>(new Set())
+
+  const handleConfirm = async (report: Report) => {
+    if (confirmedSet.has(report.id)) return
+    setConfirmingId(report.id)
+    try {
+      const supabase = getSupabaseBrowserClient()
+      await supabase
+        .from('reports')
+        .update({ verification_count: (report.verification_count ?? 1) + 1 })
+        .eq('id', report.id)
+      
+      const newSet = new Set(confirmedSet)
+      newSet.add(report.id)
+      setConfirmedSet(newSet)
+    } finally {
+      setConfirmingId(null)
+    }
+  }
 
   const fetchReports = useCallback(async () => {
     setLoading(true)
@@ -350,31 +370,48 @@ export default function DashboardPage() {
                 </span>
 
                 {/* Action */}
-                {STATUS_NEXT[report.status] ? (
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                   <button
                     className="btn-ghost"
                     style={{ fontSize: '0.625rem', padding: '0.25rem 0.5rem' }}
-                    onClick={() => handleStatusChange(report)}
-                    disabled={updatingId === report.id}
-                    id={`advance-${report.id}`}
+                    onClick={() => handleConfirm(report)}
+                    disabled={confirmingId === report.id || confirmedSet.has(report.id)}
                   >
-                    {updatingId === report.id ? (
-                      <span className="spinner" style={{ width: 12, height: 12 }} />
+                    {confirmingId === report.id ? (
+                      <span className="spinner" style={{ width: 10, height: 10 }} />
+                    ) : confirmedSet.has(report.id) ? (
+                      '✓ Confirmed'
                     ) : (
-                      <>→ {STATUS_LABELS[STATUS_NEXT[report.status]!]}</>
+                      'I see this too'
                     )}
                   </button>
-                ) : (
-                  <span
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '0.625rem',
-                      color: 'var(--color-sev-low)',
-                    }}
-                  >
-                    ✓ Done
-                  </span>
-                )}
+
+                  {STATUS_NEXT[report.status] ? (
+                    <button
+                      className="btn-ghost"
+                      style={{ fontSize: '0.625rem', padding: '0.25rem 0.5rem' }}
+                      onClick={() => handleStatusChange(report)}
+                      disabled={updatingId === report.id}
+                      id={`advance-${report.id}`}
+                    >
+                      {updatingId === report.id ? (
+                        <span className="spinner" style={{ width: 12, height: 12 }} />
+                      ) : (
+                        <>→ {STATUS_LABELS[STATUS_NEXT[report.status]!]}</>
+                      )}
+                    </button>
+                  ) : (
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '0.625rem',
+                        color: 'var(--color-sev-low)',
+                      }}
+                    >
+                      ✓ Done
+                    </span>
+                  )}
+                </div>
               </div>
             ))}
           </div>

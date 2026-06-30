@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       p_category: category,
       radius_m: 60,
       days_window: 30,
-    })
+    } as any)
 
     if (nearbyError) {
       console.error('[report] RPC error:', nearbyError)
@@ -96,11 +96,7 @@ export async function POST(request: NextRequest) {
       clusterRootId = clusterId
       merged = true
 
-      // Increment verification_count on the cluster root
-      await supabase
-        .from('reports')
-        .update({ verification_count: supabase.rpc('verification_count', {}) })
-        .eq('id', clusterRootId)
+
 
       // Simpler approach: fetch current count and increment
       const { data: rootReport } = await supabase

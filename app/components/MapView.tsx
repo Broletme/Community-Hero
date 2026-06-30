@@ -63,11 +63,28 @@ function ClusterInfoWindow({
 }) {
   const { root, confirmations } = group
   const nextStatus = STATUS_NEXT[root.status]
-  const [updating, setUpdating] = useState(false)
+  const [updatingStatus, setUpdatingStatus] = useState(false)
+  const [updatingConfirm, setUpdatingConfirm] = useState(false)
+  const [hasConfirmed, setHasConfirmed] = useState(false)
+
+  const handleConfirm = async () => {
+    if (hasConfirmed) return
+    setUpdatingConfirm(true)
+    try {
+      const supabase = getSupabaseBrowserClient()
+      await supabase
+        .from('reports')
+        .update({ verification_count: (root.verification_count ?? 1) + 1 })
+        .eq('id', root.id)
+      setHasConfirmed(true)
+    } finally {
+      setUpdatingConfirm(false)
+    }
+  }
 
   const handleStatusChange = async () => {
     if (!nextStatus) return
-    setUpdating(true)
+    setUpdatingStatus(true)
     try {
       const res = await fetch('/api/status', {
         method: 'PATCH',
@@ -78,7 +95,7 @@ function ClusterInfoWindow({
         onStatusChange(root.id, nextStatus)
       }
     } finally {
-      setUpdating(false)
+      setUpdatingStatus(false)
     }
   }
 
@@ -177,29 +194,47 @@ function ClusterInfoWindow({
         </div>
       </div>
 
-      {/* Status action */}
-      {nextStatus && (
-        <div
-          style={{
-            padding: '0.5rem 1rem 0.75rem',
-            borderTop: '1px solid var(--color-asphalt-mid)',
-          }}
+      {/* Actions */}
+      <div
+        style={{
+          padding: '0.5rem 1rem 0.75rem',
+          borderTop: '1px solid var(--color-asphalt-mid)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.5rem',
+        }}
+      >
+        <button
+          className="btn-secondary"
+          style={{ width: '100%', justifyContent: 'center', fontSize: '0.75rem', padding: '0.5rem 1rem' }}
+          onClick={handleConfirm}
+          disabled={updatingConfirm || hasConfirmed}
         >
+          {updatingConfirm ? (
+            <><span className="spinner" /> Confirming…</>
+          ) : hasConfirmed ? (
+            '✓ Confirmed'
+          ) : (
+            'I see this too'
+          )}
+        </button>
+
+        {nextStatus && (
           <button
             className="btn-primary"
             style={{ width: '100%', justifyContent: 'center', fontSize: '0.75rem', padding: '0.5rem 1rem' }}
             onClick={handleStatusChange}
-            disabled={updating}
+            disabled={updatingStatus}
             id={`status-btn-${root.id}`}
           >
-            {updating ? (
+            {updatingStatus ? (
               <><span className="spinner" /> Updating…</>
             ) : (
               <>Mark as {STATUS_LABELS[nextStatus]}</>
             )}
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* ID footer */}
       <div
