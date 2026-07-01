@@ -9,6 +9,7 @@ export async function POST(request: NextRequest) {
     const latStr = formData.get('lat') as string | null
     const lngStr = formData.get('lng') as string | null
     const userDesc = formData.get('description') as string | null
+    const userId = formData.get('user_id') as string | null
 
     if (!imageFile || !latStr || !lngStr) {
       return NextResponse.json({ error: 'Missing image, lat, or lng' }, { status: 400 })
@@ -126,6 +127,7 @@ export async function POST(request: NextRequest) {
       status: 'reported' as const,
       cluster_id: clusterId,
       verification_count: merged ? 1 : 0,
+      user_id: userId || null,
     }
 
     const { data: insertedReport, error: insertError } = await (supabase as any)

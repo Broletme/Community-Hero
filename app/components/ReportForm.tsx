@@ -6,6 +6,7 @@ import { APIProvider, Map, AdvancedMarker, type MapMouseEvent } from '@vis.gl/re
 import { Upload, MapPin, Crosshair, Camera, X, Loader } from 'lucide-react'
 import type { SubmitReportResult } from '@/lib/types'
 import SubmitResult from './SubmitResult'
+import { useAuth } from '@/lib/AuthContext'
 
 const MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!
 const DEFAULT_CENTER = { lat: 28.6139, lng: 77.209 } // New Delhi
@@ -14,6 +15,7 @@ type FormStep = 'upload' | 'location' | 'submitting' | 'done'
 
 export default function ReportForm() {
   const router = useRouter()
+  const { user } = useAuth()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [step, setStep] = useState<FormStep>('upload')
   const [imageFile, setImageFile] = useState<File | null>(null)
@@ -134,6 +136,9 @@ export default function ReportForm() {
       formData.append('lng', coords.lng.toString())
       if (description.trim()) {
         formData.append('description', description.trim())
+      }
+      if (user?.id) {
+        formData.append('user_id', user.id)
       }
 
       const res = await fetch('/api/report', {

@@ -31,6 +31,15 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    // Call notify API (non-blocking)
+    if (status === 'verified' || status === 'resolved') {
+      fetch(new URL('/api/notify', request.url).toString(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reportId: id, status }),
+      }).catch(err => console.error('[status] Failed to trigger notification:', err))
+    }
+
     return NextResponse.json(data)
   } catch (err) {
     console.error('[status] Unhandled error:', err)

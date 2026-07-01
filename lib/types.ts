@@ -14,6 +14,7 @@ export interface Report {
   cluster_id: string | null
   verification_count: number
   created_at: string
+  user_id?: string | null
 }
 
 /** A cluster is the root report + all its duplicates merged together */
