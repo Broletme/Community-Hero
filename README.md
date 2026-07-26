@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Community Hero 🦺
+### Hyperlocal Infrastructure Issue Reporting Platform
 
-## Getting Started
+Community Hero is a civic-tech web app that lets citizens report, verify, and track local infrastructure problems — potholes, broken streetlights, water leaks, garbage dumps — through photo-based reporting powered by AI and real-time collaborative mapping.
 
-First, run the development server:
+Built solo for the **Vibe2Ship Hackathon**.
+
+---
+
+## What It Does
+
+You spot a pothole. You open the app, take a photo, and hit submit. The AI automatically figures out what the problem is and how bad it is. Your report drops as a pin on a live map that anyone in your community can see.
+
+If someone else already reported the same pothole nearby, your report doesn't create a duplicate — it merges with theirs and bumps up the priority count. The more people flag the same spot, the louder it gets. That's the whole idea: turn scattered individual complaints into a single, prioritized community voice.
+
+---
+
+## Tech Stack
+
+| | |
+|---|---|
+| Framework | Next.js (TypeScript) |
+| Styling | Tailwind CSS |
+| Database + Storage + Realtime | Supabase |
+| AI Vision | Groq — Llama 4 Scout |
+| Map | Google Maps JS API |
+| Deployment | Vercel |
+
+---
+
+## How to Run
+
+### Prerequisites
+- Node.js 18+
+- Supabase account (free)
+- Groq API key (free)
+- Google Cloud project with Maps JavaScript API enabled
+
+### Setup
 
 ```bash
+# Clone and install
+git clone https://github.com/yourusername/community-hero.git
+cd community-hero
+npm install
+
+# Add environment variables
+cp .env.local.example .env.local
+# Fill in your Supabase URL, Supabase anon key, Groq API key, Google Maps API key
+
+# Run locally
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Deploy
+```bash
+vercel
+```
+Add your four env vars in Vercel project settings and you're live.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Built by **Dibu** for Vibe2Ship Hackathon.
