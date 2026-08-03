@@ -286,30 +286,33 @@ function MarkersLayer({
             title={`${CATEGORY_LABELS[root.category]} — ${root.severity} severity`}
             onClick={() => onSelect(isSelected ? null : clusterId)}
           >
-            <div style={{ position: 'relative', cursor: 'pointer' }}>
-              {/* Pin */}
+            <div
+              className="glowing-marker-wrapper"
+              style={{ '--marker-color': color } as React.CSSProperties}
+            >
+              {/* Dual Pulsing Radar Aura Rings */}
+              <div className="marker-pulse-aura" />
+              <div className="marker-pulse-aura marker-pulse-aura-delay" />
+
+              {/* Glowing Pin */}
               <div
+                className="glowing-marker-pin"
                 style={{
-                  width: isSelected ? 36 : 28,
-                  height: isSelected ? 36 : 28,
+                  width: isSelected ? 42 : 34,
+                  height: isSelected ? 42 : 34,
                   background: color,
-                  borderRadius: '50% 50% 50% 0',
-                  transform: 'rotate(-45deg)',
-                  border: `2px solid ${isSelected ? '#fff' : 'rgba(28,27,25,0.9)'}`,
+                  border: `2px solid ${isSelected ? '#ffffff' : 'rgba(255,255,255,0.95)'}`,
                   boxShadow: isSelected
-                    ? `0 0 0 3px ${color}44, 0 4px 16px rgba(0,0,0,0.5)`
-                    : '0 2px 8px rgba(0,0,0,0.4)',
-                  transition: 'all 0.15s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                    ? `0 0 16px ${color}, 0 0 32px ${color}, 0 4px 20px rgba(0,0,0,0.8)`
+                    : `0 0 12px ${color}, 0 0 24px ${color}99, 0 3px 12px rgba(0,0,0,0.7)`,
                 }}
               >
                 <span
                   style={{
                     transform: 'rotate(45deg)',
-                    fontSize: isSelected ? '14px' : '11px',
+                    fontSize: isSelected ? '16px' : '13px',
                     lineHeight: 1,
+                    filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))',
                   }}
                 >
                   {CATEGORY_ICONS[root.category]}
@@ -321,22 +324,22 @@ function MarkersLayer({
                 <div
                   style={{
                     position: 'absolute',
-                    top: -8,
-                    right: -10,
-                    transform: 'none',
+                    top: -6,
+                    right: -8,
                     background: 'var(--color-orange)',
                     color: 'white',
                     fontFamily: 'var(--font-mono)',
                     fontWeight: 700,
-                    fontSize: '9px',
-                    width: 18,
-                    height: 18,
+                    fontSize: '10px',
+                    width: 20,
+                    height: 20,
                     borderRadius: '50%',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    border: '1.5px solid var(--color-asphalt)',
-                    zIndex: 1,
+                    border: '2px solid #ffffff',
+                    boxShadow: '0 0 10px rgba(212,80,42,0.9), 0 2px 6px rgba(0,0,0,0.6)',
+                    zIndex: 2,
                   }}
                 >
                   {confirmations > 9 ? '9+' : confirmations}
