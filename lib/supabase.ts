@@ -42,12 +42,23 @@ let _browserClient: ReturnType<typeof createClient> | null = null
 
 export function getSupabaseBrowserClient() {
   if (!_browserClient) {
-    _browserClient = createClient(supabaseUrl, supabaseAnonKey)
+    _browserClient = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: true,
+        detectSessionInUrl: true,
+      },
+    })
   }
   return _browserClient
 }
 
 /** Server-side Supabase client (new instance per call — safe in Route Handlers) */
 export function getSupabaseServerClient() {
-  return createClient(supabaseUrl, supabaseAnonKey)
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  })
 }

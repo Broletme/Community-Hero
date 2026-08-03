@@ -53,12 +53,15 @@ export default function MyReportsPage() {
     setLoading(true)
     try {
       const supabase = getSupabaseBrowserClient()
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('reports')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
+      if (error) console.error('My-reports fetch error:', error)
       setReports((data as Report[]) ?? [])
+    } catch (err) {
+      console.error('Failed to fetch user reports:', err)
     } finally {
       setLoading(false)
     }

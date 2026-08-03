@@ -77,6 +77,8 @@ function ClusterInfoWindow({
         .update({ verification_count: (root.verification_count ?? 1) + 1 })
         .eq('id', root.id)
       setHasConfirmed(true)
+    } catch (err) {
+      console.error('Failed to confirm report:', err)
     } finally {
       setUpdatingConfirm(false)
     }
@@ -94,6 +96,8 @@ function ClusterInfoWindow({
       if (res.ok) {
         onStatusChange(root.id, nextStatus)
       }
+    } catch (err) {
+      console.error('Failed to update status:', err)
     } finally {
       setUpdatingStatus(false)
     }
@@ -393,29 +397,37 @@ export default function MapView({ initialReports = [] }: MapViewProps) {
   // Supabase Realtime subscription
   useEffect(() => {
     const supabase = supabaseRef.current
-    const channel = supabase
-      .channel('reports-live')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'reports' },
-        (payload) => {
-          const newReport = payload.new as Report
-          setReports((prev) => [newReport, ...prev])
-          setLiveCount((n) => n + 1)
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'reports' },
-        (payload) => {
-          const updated = payload.new as Report
-          setReports((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))
-        }
-      )
-      .subscribe()
+    try {
+      const channel = supabase
+        .channel('reports-live')
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'reports' },
+          (payload) => {
+            const newReport = payload.new as Report
+            setReports((prev) => [newReport, ...prev])
+            setLiveCount((n) => n + 1)
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'reports' },
+          (payload) => {
+            const updated = payload.new as Report
+            setReports((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))
+          }
+        )
+        .subscribe((status, err) => {
+          if (err || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            console.warn('Realtime subscription issue:', err || status)
+          }
+        })
 
-    return () => {
-      supabase.removeChannel(channel)
+      return () => {
+        supabase.removeChannel(channel)
+      }
+    } catch (err) {
+      console.warn('Realtime channel setup error:', err)
     }
   }, [])
 

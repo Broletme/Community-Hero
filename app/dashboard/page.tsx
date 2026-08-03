@@ -58,6 +58,8 @@ export default function DashboardPage() {
       const newSet = new Set(confirmedSet)
       newSet.add(report.id)
       setConfirmedSet(newSet)
+    } catch (err) {
+      console.error('Failed to confirm report:', err)
     } finally {
       setConfirmingId(null)
     }
@@ -67,12 +69,15 @@ export default function DashboardPage() {
     setLoading(true)
     try {
       const supabase = getSupabaseBrowserClient()
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('reports')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(500)
+      if (error) console.error('Dashboard fetch reports error:', error)
       setReports((data as Report[]) ?? [])
+    } catch (err) {
+      console.error('Failed to fetch dashboard reports:', err)
     } finally {
       setLoading(false)
     }
@@ -82,13 +87,21 @@ export default function DashboardPage() {
     fetchReports()
     // Realtime
     const supabase = getSupabaseBrowserClient()
-    const channel = supabase
-      .channel('dashboard-live')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'reports' }, () => {
-        fetchReports()
-      })
-      .subscribe()
-    return () => { supabase.removeChannel(channel) }
+    try {
+      const channel = supabase
+        .channel('dashboard-live')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'reports' }, () => {
+          fetchReports()
+        })
+        .subscribe((status, err) => {
+          if (err || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            console.warn('Dashboard realtime error:', err || status)
+          }
+        })
+      return () => { supabase.removeChannel(channel) }
+    } catch (err) {
+      console.warn('Dashboard realtime channel setup error:', err)
+    }
   }, [fetchReports])
 
   const handleSort = (key: SortKey) => {
@@ -109,6 +122,8 @@ export default function DashboardPage() {
       if (res.ok) {
         setReports((prev) => prev.map((r) => (r.id === report.id ? { ...r, status: next } : r)))
       }
+    } catch (err) {
+      console.error('Failed to update status:', err)
     } finally {
       setUpdatingId(null)
     }

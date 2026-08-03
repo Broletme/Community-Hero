@@ -56,7 +56,8 @@ export async function POST(request: NextRequest) {
       const base64 = Buffer.from(bytes).toString('base64')
       const dataUrl = `data:${imageFile.type || 'image/jpeg'};base64,${base64}`
 
-      const categorizeRes = await fetch(new URL('/api/categorize', request.url).toString(), {
+      const origin = request.nextUrl.origin.replace('0.0.0.0', '127.0.0.1')
+      const categorizeRes = await fetch(`${origin}/api/categorize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imageBase64: dataUrl }),

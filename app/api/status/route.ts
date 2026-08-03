@@ -33,7 +33,8 @@ export async function PATCH(request: NextRequest) {
 
     // Call notify API (non-blocking)
     if (status === 'verified' || status === 'resolved') {
-      fetch(new URL('/api/notify', request.url).toString(), {
+      const origin = request.nextUrl.origin.replace('0.0.0.0', '127.0.0.1')
+      fetch(`${origin}/api/notify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reportId: id, status }),
