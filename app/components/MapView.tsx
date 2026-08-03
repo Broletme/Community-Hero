@@ -294,6 +294,31 @@ function MarkersLayer({
               <div className="marker-pulse-aura" />
               <div className="marker-pulse-aura marker-pulse-aura-delay" />
 
+              {/* Small Hover Image Preview Badge */}
+              {!isSelected && (
+                <div className="marker-hover-card">
+                  <div className="marker-hover-img-wrapper">
+                    {root.image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={root.image_url}
+                        alt={CATEGORY_LABELS[root.category]}
+                        className="marker-hover-img"
+                      />
+                    ) : (
+                      <div className="marker-hover-no-img">
+                        <span style={{ fontSize: '18px' }}>{CATEGORY_ICONS[root.category]}</span>
+                        <span>No photo</span>
+                      </div>
+                    )}
+                    <div className="marker-hover-badge">
+                      {CATEGORY_ICONS[root.category]} {CATEGORY_LABELS[root.category]}
+                    </div>
+                  </div>
+                  <div className="marker-hover-arrow" />
+                </div>
+              )}
+
               {/* Glowing Pin */}
               <div
                 className="glowing-marker-pin"
