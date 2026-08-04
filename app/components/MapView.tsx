@@ -334,32 +334,46 @@ function MarkersLayer({
         )
       })}
 
-      {/* Custom floating panel for selected cluster — no white InfoWindow bubble */}
+      {/* Custom floating panel — pointer-events:none on wrapper so map/markers stay clickable */}
       {selected && (
         <AdvancedMarker
           position={{ lat: selected.root.lat, lng: selected.root.lng }}
           zIndex={999}
         >
-          <div className="info-panel-float" style={{ filter: 'drop-shadow(0 20px 48px rgba(0,0,0,0.85))' }}>
-            <ClusterInfoWindow
-              group={selected}
-              onStatusChange={onStatusChange}
-              onClose={() => onSelect(null)}
-            />
-            {/* Caret arrow */}
+          {/* Outer shell: pass ALL events to the map beneath */}
+          <div style={{ pointerEvents: 'none' }}>
+            {/* Inner card: restore events + stop propagation so POI clicks don't fire */}
             <div
+              className="info-panel-float"
               style={{
-                position: 'absolute',
-                bottom: -8,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: 0,
-                height: 0,
-                borderLeft: '9px solid transparent',
-                borderRight: '9px solid transparent',
-                borderTop: '9px solid #232220',
+                filter: 'drop-shadow(0 20px 48px rgba(0,0,0,0.85))',
+                pointerEvents: 'auto',
               }}
-            />
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+            >
+              <ClusterInfoWindow
+                group={selected}
+                onStatusChange={onStatusChange}
+                onClose={() => onSelect(null)}
+              />
+              {/* Caret arrow */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: -8,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: 0,
+                  height: 0,
+                  borderLeft: '9px solid transparent',
+                  borderRight: '9px solid transparent',
+                  borderTop: '9px solid #232220',
+                  pointerEvents: 'none',
+                }}
+              />
+            </div>
           </div>
         </AdvancedMarker>
       )}
