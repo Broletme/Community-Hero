@@ -5,7 +5,6 @@ import {
   APIProvider,
   Map,
   AdvancedMarker,
-  InfoWindow,
   useMap,
 } from '@vis.gl/react-google-maps'
 import { getSupabaseBrowserClient } from '@/lib/supabase'
@@ -104,19 +103,13 @@ function ClusterInfoWindow({
   }
 
   return (
-    <div className="info-panel" style={{ fontFamily: 'var(--font-body)' }}>
+    <div className="info-panel">
+      {/* Accent bar */}
+      <div className="info-panel-accent-bar" />
+
       {/* Header */}
-      <div
-        style={{
-          padding: '0.75rem 1rem',
-          borderBottom: '1px solid var(--color-asphalt-mid)',
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          gap: '0.5rem',
-        }}
-      >
-        <div>
+      <div className="info-panel-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
             <span className="category-tag" style={{ fontSize: '0.6875rem' }}>
               {CATEGORY_ICONS[root.category]} {CATEGORY_LABELS[root.category]}
@@ -124,25 +117,14 @@ function ClusterInfoWindow({
             <SeverityIndicator severity={root.severity} size="sm" />
           </div>
           {confirmations > 1 && (
-            <div style={{ marginTop: '0.375rem' }}>
-              <span className="verify-count">
-                🔗 {confirmations} confirmations
-              </span>
+            <div className="info-confirm-badge">
+              ◈ {confirmations} confirmations
             </div>
           )}
         </div>
         <button
+          className="info-close-btn"
           onClick={onClose}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--color-paper-dark)',
-            cursor: 'pointer',
-            padding: '0.125rem',
-            lineHeight: 1,
-            fontSize: '1.25rem',
-            flexShrink: 0,
-          }}
           aria-label="Close"
         >
           ×
@@ -151,42 +133,37 @@ function ClusterInfoWindow({
 
       {/* Photo */}
       {root.image_url && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={root.image_url}
-          alt={CATEGORY_LABELS[root.category]}
-          style={{ width: '100%', height: 140, objectFit: 'cover', display: 'block' }}
-        />
+        <div className="info-panel-image-wrap">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={root.image_url}
+            alt={CATEGORY_LABELS[root.category]}
+          />
+        </div>
       )}
 
       {/* Body */}
-      <div style={{ padding: '0.75rem 1rem' }}>
+      <div className="info-panel-body">
         <p
           style={{
-            fontSize: '0.875rem',
+            fontSize: '0.8125rem',
             color: 'var(--color-paper)',
-            margin: '0 0 0.75rem',
-            lineHeight: 1.5,
+            margin: '0',
+            lineHeight: 1.55,
+            fontWeight: 400,
           }}
         >
           {root.description}
         </p>
 
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '0.5rem',
-            flexWrap: 'wrap',
-          }}
-        >
+        <div className="info-panel-meta">
           <StatusBadge status={root.status} size="sm" />
           <span
             style={{
               fontFamily: 'var(--font-mono)',
-              fontSize: '0.625rem',
-              color: 'var(--color-paper-dark)',
+              fontSize: '0.5625rem',
+              color: 'rgba(184,180,172,0.5)',
+              letterSpacing: '0.05em',
             }}
           >
             {new Date(root.created_at).toLocaleDateString('en-IN', {
@@ -199,59 +176,41 @@ function ClusterInfoWindow({
       </div>
 
       {/* Actions */}
-      <div
-        style={{
-          padding: '0.5rem 1rem 0.75rem',
-          borderTop: '1px solid var(--color-asphalt-mid)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.5rem',
-        }}
-      >
+      <div className="info-panel-actions">
         <button
-          className="btn-secondary"
-          style={{ width: '100%', justifyContent: 'center', fontSize: '0.75rem', padding: '0.5rem 1rem' }}
+          className="info-btn-secondary"
           onClick={handleConfirm}
           disabled={updatingConfirm || hasConfirmed}
         >
           {updatingConfirm ? (
-            <><span className="spinner" /> Confirming…</>
+            <><span className="spinner" style={{ width: 14, height: 14 }} /> Confirming…</>
           ) : hasConfirmed ? (
-            '✓ Confirmed'
+            <>✓ Confirmed</>
           ) : (
-            'I see this too'
+            <>👁 I see this too</>
           )}
         </button>
 
         {nextStatus && (
           <button
-            className="btn-primary"
-            style={{ width: '100%', justifyContent: 'center', fontSize: '0.75rem', padding: '0.5rem 1rem' }}
+            className="info-btn-primary"
             onClick={handleStatusChange}
             disabled={updatingStatus}
             id={`status-btn-${root.id}`}
           >
             {updatingStatus ? (
-              <><span className="spinner" /> Updating…</>
+              <><span className="spinner" style={{ width: 14, height: 14, borderTopColor: '#fff' }} /> Updating…</>
             ) : (
-              <>Mark as {STATUS_LABELS[nextStatus]}</>
+              <>→ Mark as {STATUS_LABELS[nextStatus]}</>
             )}
           </button>
         )}
       </div>
 
       {/* ID footer */}
-      <div
-        style={{
-          padding: '0.375rem 1rem',
-          borderTop: '1px solid var(--color-asphalt-mid)',
-          fontFamily: 'var(--font-mono)',
-          fontSize: '0.5625rem',
-          color: 'var(--color-paper-dark)',
-          letterSpacing: '0.05em',
-        }}
-      >
-        #{root.id.slice(0, 8).toUpperCase()} · {root.lat.toFixed(4)}, {root.lng.toFixed(4)}
+      <div className="info-panel-footer">
+        <span>#{root.id.slice(0, 8).toUpperCase()}</span>
+        <span>{root.lat.toFixed(4)}, {root.lng.toFixed(4)}</span>
       </div>
     </div>
   )
@@ -326,10 +285,10 @@ function MarkersLayer({
                   width: isSelected ? 42 : 34,
                   height: isSelected ? 42 : 34,
                   background: color,
-                  border: `2px solid ${isSelected ? '#ffffff' : 'rgba(255,255,255,0.95)'}`,
+                  border: `2px solid ${isSelected ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)'}`,
                   boxShadow: isSelected
                     ? `0 0 16px ${color}, 0 0 32px ${color}, 0 4px 20px rgba(0,0,0,0.8)`
-                    : `0 0 12px ${color}, 0 0 24px ${color}99, 0 3px 12px rgba(0,0,0,0.7)`,
+                    : `0 0 10px ${color}99, 0 3px 10px rgba(0,0,0,0.6)`,
                 }}
               >
                 <span
@@ -375,20 +334,34 @@ function MarkersLayer({
         )
       })}
 
-      {/* InfoWindow for selected cluster */}
+      {/* Custom floating panel for selected cluster — no white InfoWindow bubble */}
       {selected && (
-        <InfoWindow
+        <AdvancedMarker
           position={{ lat: selected.root.lat, lng: selected.root.lng }}
-          onCloseClick={() => onSelect(null)}
-          pixelOffset={[0, -20]}
-          disableAutoPan={false}
+          zIndex={999}
         >
-          <ClusterInfoWindow
-            group={selected}
-            onStatusChange={onStatusChange}
-            onClose={() => onSelect(null)}
-          />
-        </InfoWindow>
+          <div className="info-panel-float" style={{ filter: 'drop-shadow(0 20px 48px rgba(0,0,0,0.85))' }}>
+            <ClusterInfoWindow
+              group={selected}
+              onStatusChange={onStatusChange}
+              onClose={() => onSelect(null)}
+            />
+            {/* Caret arrow */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: -8,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: 0,
+                height: 0,
+                borderLeft: '9px solid transparent',
+                borderRight: '9px solid transparent',
+                borderTop: '9px solid #232220',
+              }}
+            />
+          </div>
+        </AdvancedMarker>
       )}
     </>
   )
