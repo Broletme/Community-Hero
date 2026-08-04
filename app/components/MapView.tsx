@@ -65,19 +65,25 @@ function ClusterInfoWindow({
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [updatingConfirm, setUpdatingConfirm] = useState(false)
   const [hasConfirmed, setHasConfirmed] = useState(false)
+  const [localCount, setLocalCount] = useState(confirmations)
 
   const handleConfirm = async () => {
     if (hasConfirmed) return
     setUpdatingConfirm(true)
+    // Optimistic UI — bump count immediately
+    setLocalCount((n) => n + 1)
+    setHasConfirmed(true)
     try {
       const supabase = getSupabaseBrowserClient()
       await (supabase as any)
         .from('reports')
         .update({ verification_count: (root.verification_count ?? 1) + 1 })
         .eq('id', root.id)
-      setHasConfirmed(true)
     } catch (err) {
       console.error('Failed to confirm report:', err)
+      // Roll back on failure
+      setLocalCount((n) => n - 1)
+      setHasConfirmed(false)
     } finally {
       setUpdatingConfirm(false)
     }
@@ -116,9 +122,9 @@ function ClusterInfoWindow({
             </span>
             <SeverityIndicator severity={root.severity} size="sm" />
           </div>
-          {confirmations > 1 && (
+          {localCount > 1 && (
             <div className="info-confirm-badge">
-              ◈ {confirmations} confirmations
+              ◈ {localCount} {localCount === 1 ? 'confirmation' : 'confirmations'}
             </div>
           )}
         </div>
@@ -178,16 +184,24 @@ function ClusterInfoWindow({
       {/* Actions */}
       <div className="info-panel-actions">
         <button
-          className="info-btn-secondary"
+          className={`info-btn-secondary${hasConfirmed ? ' is-confirmed' : ''}`}
           onClick={handleConfirm}
           disabled={updatingConfirm || hasConfirmed}
         >
           {updatingConfirm ? (
             <><span className="spinner" style={{ width: 14, height: 14 }} /> Confirming…</>
           ) : hasConfirmed ? (
-            <>✓ Confirmed</>
+            <span className="confirm-success-label">
+              <span className="confirm-check">✓</span>
+              <span className="confirm-count" key={localCount}>{localCount}</span>
+              <span className="confirm-text">people see this</span>
+            </span>
           ) : (
-            <>👁 I see this too</>
+            <span className="confirm-idle-label">
+              <span>👁</span>
+              <span className="confirm-count-idle">{localCount}</span>
+              <span>see this · I see it too</span>
+            </span>
           )}
         </button>
 
